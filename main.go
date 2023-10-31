@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -28,26 +29,54 @@ func main() {
 
 	defer discord.Close()
 
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		fmt.Println("data needs to be piped to stdin")
+		fmt.Println("\techo 'hello' | docker-notify")
+		os.Exit(1)
+	}
+
 	// get message from stdin: `echo "hello world!" | go run .`
 	reader := bufio.NewReader(os.Stdin)
+
 	msg, _ := io.ReadAll(reader)
+
+	var code_format string
+
+	flag.StringVar(&code_format, "code", "", "If passed, which code format the message should use")
+
+	flag.Parse()
 
 	// start a channel for exiting
 	done := make(chan bool, 1)
+
+	var dm string
+	if len(code_format) > 0 {
+		dm = fmt.Sprintf("```%s\n%s```", code_format, msg)
+	} else {
+		dm = string(msg)
+	}
 
 	// add a handler for when discord is ready
 	discord.AddHandler(func(s *discordgo.Session, m *discordgo.Ready) {
 		channel, err := s.UserChannelCreate(USER)
 
+		var channel_id string
+
 		if err != nil {
-			fmt.Println("channel not created with User:", USER)
-			panic("UserChannelCreated Failed" + err.Error())
+			// TODO append errors to an array and output if there's an issue
+			fmt.Println("channel not created with User: ", USER, " ", err.Error())
+			// try setting the user id as the channel
+			channel_id = USER
+		} else {
+			channel_id = channel.ID
 		}
 
-		_, err = s.ChannelMessageSend(channel.ID, string(msg))
+		// TODO: this has a limit of 4K characters
+		_, err = s.ChannelMessageSend(channel_id, dm)
 
 		if err != nil {
-			panic("ChannelMessageSend Failed" + err.Error())
+			panic("ChannelMessageSend Failed: " + err.Error())
 		}
 
 		done <- true
