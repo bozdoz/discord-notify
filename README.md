@@ -7,7 +7,7 @@ Send notifications to yourself
 Download:
 
 ```sh
-VERSION=0.0.1
+VERSION=0.0.3
 OS=linux
 ARCH=amd64
 curl -OL "https://github.com/bozdoz/discord-notify/releases/download/v${VERSION}/discord-notify-v${VERSION}-${OS}-${ARCH}.tar.gz"
@@ -21,7 +21,7 @@ tar -xvf discord-notify.tar.gz
 
 Setup:
 
-Setup `NOTIFY_TOKEN` and `NOTIFY_USER` somehow.  Maybe with a `.env` file, adjacent to your binary.
+Setup environment variables for `NOTIFY_TOKEN` and `NOTIFY_USER` somehow.  Maybe with a `.env` file, adjacent to your binary.
 
 ```sh
 NOTIFY_TOKEN=ASDF.asdf.asdf

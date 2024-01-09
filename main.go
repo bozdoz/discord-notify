@@ -6,9 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 
@@ -32,6 +29,7 @@ func main() {
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) != 0 {
 		fmt.Println("data needs to be piped to stdin")
+		fmt.Println("\nUsage:")
 		fmt.Println("\techo 'hello' | docker-notify")
 		os.Exit(1)
 	}
@@ -40,6 +38,13 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	msg, _ := io.ReadAll(reader)
+
+	if len(msg) < 2 {
+		fmt.Println("message is empty")
+		fmt.Println("\nUsage:")
+		fmt.Println("\techo 'hello' | docker-notify")
+		os.Exit(1)
+	}
 
 	var code_format string
 
@@ -86,20 +91,6 @@ func main() {
 	if err = discord.Open(); err != nil {
 		panic("An error occurred while trying to open bot connection: " + err.Error())
 	}
-
-	// add handler for CTRL+C exiting
-	go func() {
-		sc := make(chan os.Signal, 1)
-		signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
-
-		// wait 2 seconds before we give the message to press CTRL-C
-		time.Sleep(time.Second * 2)
-
-		fmt.Println("Press CTRL-C to exit...")
-
-		<-sc
-		done <- true
-	}()
 
 	<-done
 	fmt.Println("done.")
