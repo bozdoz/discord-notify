@@ -30,16 +30,28 @@ NOTIFY_USER=9879879877987
 
 Use:
 
+Testing:
+
 ```sh
 echo "Hello" | discord-notify
 ```
+
+Printing a list of files/folders in a directory:
 
 ```sh
 ls | discord-notify
 ```
 
+Syntax Highlighting:
+
 ```sh
 echo "const elephant: number = 123; // but really is it?"  | discord-notify --code=ts
+```
+
+Notifying when a Docker container exits:
+
+```sh
+docker ps -a --format "{{.Names}} | {{.Status}}" --filter status=exited | discord-notify --code=sh
 ```
 
 For permissions:
